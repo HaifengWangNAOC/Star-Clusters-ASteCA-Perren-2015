@@ -1,0 +1,30 @@
+
+
+This link:
+
+https://github.com/Gabriel-p/asteca/compare/791a238...cfbe6b9
+
+contains all the commits done to generalize the photometric
+systems used. All this commits are applied inside this
+branch.
+
+Once v0.1.1 is stable and released, create a new branch
+and add one by one all the changes made in those commits
+until the new branch is as simlar as this one as possible.
+
+The command
+
+git difftool branch1..branch2
+
+can be used to check the differences between branches.
+
+This branch (the old one) can be deleted after the above step
+is done, making sure all the changes were moved into the
+new branch.
+
+After that, keep working (now on the new branch) until
+the generalization is done. in the meantime, keep
+the code in the master branch separated.
+
+When the generalization is done, merge into master and
+publish the code as v0.2.0.
