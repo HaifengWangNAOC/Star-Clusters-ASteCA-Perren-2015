@@ -16,6 +16,7 @@ import warnings
 # Custom functions.
 from functions.exp_function import exp_func
 import error_round as err_r
+import get_in_params as g
 
 
 def star_size(mag_data):
@@ -60,33 +61,60 @@ def reject_outliers(data, m=6.5):
     return data[s < m]
 
 
-def make_plots(output_subdir, clust_name, x_data, y_data, gd_params,
-    bin_width, center_params, rdp_params, field_dens, radius_params,
-    cont_index, mag_data, col1_data, err_plot, err_flags, kp_params,
-    cl_region, stars_out, stars_in_rjct, stars_out_rjct, integr_return, n_memb,
-    flag_area_stronger, field_regions, flag_pval_test,
-    pval_test_params, memb_prob_avrg_sort, lum_func, completeness, ip_list,
-    da_params, bf_params, red_return, err_lst, bf_return, ga_params, er_params,
-    axes_params, pl_params):
+def gen_ax_names(ax_n):
+    '''
+    Generate a correct axis name.
+    '''
+    if len(ax_n) > 1:
+        # It's a color.
+        if len(ax_n[0]) > 1:
+            # It's a magnitude with a sub-index.
+            c0 = ax_n[0][0] + '_{' + ax_n[0][1] + '}'
+        else:
+            c0 = ax_n[0]
+        if len(ax_n[1]) > 1:
+            c1 = ax_n[1][0] + '_{' + ax_n[1][1] + '}'
+        else:
+            c1 = ax_n[1]
+        ax_name = '(' + c0 + '-' + c1 + ')'
+    else:
+        # It's a magnitude.
+        if len(ax_n[0]) > 1:
+            # It's a magnitude with a sub-index.
+            m0 = ax_n[0][0] + '_{' + ax_n[0][1] + '}'
+        else:
+            m0 = ax_n[0]
+        ax_name = m0
+
+    return ax_name
+
+
+def make_plots(output_subdir, clust_name, phot_params, id_coords, phot_data,
+    bin_width, center_params, rdp_params, field_dens, radius_params, cont_index,
+    err_plot, err_flags, kp_params, cl_region, stars_out, stars_in_rjct,
+    stars_out_rjct, integr_return, n_memb, flag_area_stronger, field_regions,
+    flag_pval_test, pval_test_params, memb_prob_avrg_sort, lum_func,
+    completeness, ip_list, red_return, err_lst, bf_return):
     '''
     Make all plots.
     '''
 
     # Define names for CMD axes.
-    y_axis = 0
-    y_ax, x_ax0, m_ord = axes_params[0:3]
-    if m_ord == 21:
-        x_ax = '(' + x_ax0 + '-' + y_ax + ')'
-    elif m_ord == 12:
-        x_ax = '(' + y_ax + '-' + x_ax0 + ')'
+    m_c_names, diag_axis = phot_params[1], phot_params[-1]
+    x_axis = diag_axis[0] if diag_axis[0] <= 1 else 1
+    y_axis = diag_axis[2] if diag_axis[2] <= 1 else 1
+    x_ax_n = m_c_names[x_axis][diag_axis[1]][1:].split('-')
+    y_ax_n = m_c_names[y_axis][diag_axis[3]][1:].split('-')
+    # For y photometric axis.
+    x_ax, y_ax = gen_ax_names(x_ax_n), gen_ax_names(y_ax_n)
 
     # Unpack coordinates and photometric data.
-    #x_data, y_data = id_coords[1:]
-    phot_x = col1_data
-    phot_y = mag_data
+    x_data, y_data = id_coords[1:]
+    phot_x = phot_data[diag_axis[0]][diag_axis[1]]
+    phot_y = phot_data[diag_axis[2]][diag_axis[3]]
 
     # Define system of coordinates used.
-    px_deg = gd_params[-1]
+    px_deg = g.gd_params[0][-1]
     coord_lst = ['px', 'x', 'y'] if px_deg == 'px' else ['deg', 'ra', 'dec']
     coord, x_name, y_name = coord_lst
 
@@ -110,16 +138,16 @@ def make_plots(output_subdir, clust_name, x_data, y_data, gd_params,
     # King prof params.
     rc, e_rc, rt, e_rt, n_c_k, cd, flag_2pk_conver, flag_3pk_conver = kp_params
     # Error parameters.
-    er_mode, e_max, be, be_e, N_sig = er_params
+    er_mode, e_max, be, be_e, N_sig = g.er_params
     err_all_fallback, err_max_fallback = err_flags
     # Luminosity functions.
     x_cl, y_cl, x_fl, y_fl = lum_func
     # Reduced membership.
     min_prob = red_return[1]
     # Best isochrone fit params.
-    bf_flag, best_fit_algor, lkl_method, bin_method, N_b = bf_params
+    bf_flag, best_fit_algor, N_b = g.bf_params
     # Genetic algorithm params.
-    n_pop, n_gen, fdif, p_cross, cr_sel, p_mut, n_el, n_ei, n_es = ga_params
+    n_pop, n_gen, fdif, p_cross, cr_sel, p_mut, n_el, n_ei, n_es = g.ga_params
     # Best fitting process results.
     isoch_fit_params, isoch_fit_errors, shift_isoch, synth_clst = bf_return
 
@@ -240,7 +268,7 @@ def make_plots(output_subdir, clust_name, x_data, y_data, gd_params,
     plt.text(0.05, 0.9, text, transform=ax4.transAxes,
         bbox=dict(facecolor='white', alpha=0.85), fontsize=11)
     # Plot stars.
-    st_sizes_arr = star_size(mag_data)
+    st_sizes_arr = star_size(phot_data[0][0])
     ax4.set_aspect('equal')
     plt.scatter(x_data, y_data, marker='o', c='black', s=st_sizes_arr)
 
@@ -429,16 +457,17 @@ def make_plots(output_subdir, clust_name, x_data, y_data, gd_params,
     # Outside of the cluster region.
     stars_rjct_temp = [[], []]
     for star in stars_out_rjct:
-        stars_rjct_temp[0].append(star[5])
-        stars_rjct_temp[1].append(star[3])
+        # Add 3 to obtain the correct list.
+        stars_rjct_temp[0].append(star[diag_axis[0] + 3][diag_axis[1]])
+        stars_rjct_temp[1].append(star[diag_axis[2] + 3][diag_axis[3]])
     plt.scatter(stars_rjct_temp[0], stars_rjct_temp[1], marker='x', c='teal',
                 s=15, zorder=1)
     # Plot stars within the field regions defined.
     stars_acpt_temp = [[], []]
     for fr in field_regions:
         for star in fr:
-            stars_acpt_temp[0].append(star[5])
-            stars_acpt_temp[1].append(star[3])
+            stars_acpt_temp[0].append(star[diag_axis[0] + 3][diag_axis[1]])
+            stars_acpt_temp[1].append(star[diag_axis[2] + 3][diag_axis[3]])
     sz_pt = 0.2 if (len(stars_out_rjct) + len(stars_out)) > 5000 else 0.5
     plt.scatter(stars_acpt_temp[0], stars_acpt_temp[1], marker='o', c='k',
                 s=sz_pt, zorder=2)
@@ -469,105 +498,132 @@ def make_plots(output_subdir, clust_name, x_data, y_data, gd_params,
              bbox=dict(facecolor='white', alpha=0.5), fontsize=16)
     # Plot stars in CMD.
     if len(stars_in_rjct) > 0:
-        # Only attempt to pot if any star is stored in the list.
-        plt.scatter(zip(*stars_in_rjct)[5], zip(*stars_in_rjct)[3], marker='x',
-            c='teal', s=12, zorder=1)
+        # Only attempt to plot if any star is stored in the list.
+        stars_in_rjct_temp = [[], []]
+        for star in stars_in_rjct:
+            # Add 3 to obtain the correct list.
+            stars_in_rjct_temp[0].append(star[diag_axis[0] + 3][diag_axis[1]])
+            stars_in_rjct_temp[1].append(star[diag_axis[2] + 3][diag_axis[3]])
+        plt.scatter(stars_in_rjct_temp[0], stars_in_rjct_temp[1], marker='x',
+                    c='teal', s=12, zorder=1)
     sz_pt = 0.5 if (len(stars_in_rjct) + len(cl_region)) > 1000 else 1.
-    plt.scatter(zip(*cl_region)[5], zip(*cl_region)[3], marker='o', c='k',
+    stars_in_temp = [[], []]
+    for star in cl_region:
+        # Add 3 to obtain the correct list.
+        stars_in_temp[0].append(star[diag_axis[0] + 3][diag_axis[1]])
+        stars_in_temp[1].append(star[diag_axis[2] + 3][diag_axis[3]])
+    plt.scatter(stars_in_temp[0], stars_in_temp[1], marker='o', c='k',
                 s=sz_pt, zorder=2)
 
-    # Magnitude error
+    # Top photometric error.
     ax10 = plt.subplot(gs1[4, 6:8])
-    #Set plot limits
-    x_min, x_max = min(mag_data) - 0.5, max(mag_data) + 0.5
+    #Set plot limits (phot_data[0][0] is the main magnitude defined)
+    x_min, x_max = min(phot_data[0][0]) - 0.5, max(phot_data[0][0]) + 0.5
     plt.xlim(x_min, x_max)
     plt.ylim(-0.005, e_max + (e_max / 5.))
     #Set axis labels
     plt.ylabel('$\sigma_{' + y_ax + '}$', fontsize=18)
-    plt.xlabel('$' + y_ax + '$', fontsize=18)
+    main_mag_name = str(phot_params[1][0][0][1:])
+    plt.xlabel('$' + main_mag_name + '$', fontsize=18)
     # Set minor ticks
     ax10.minorticks_on()
     # Plot e_max line.
     ax10.hlines(y=e_max, xmin=x_min, xmax=x_max, color='r',
         linestyles='dashed', zorder=2)
     # Plot rectangle.
-    bright_end = min(mag_data) + be
+    bright_end = min(phot_data[0][0]) + be
     ax10.vlines(x=bright_end + 0.05, ymin=-0.005, ymax=be_e, color='r',
                linestyles='dashed', zorder=2)
-    ax10.vlines(x=min(mag_data) - 0.05, ymin=-0.005, ymax=be_e, color='r',
-               linestyles='dashed', zorder=2)
-    ax10.hlines(y=be_e, xmin=min(mag_data), xmax=bright_end, color='r',
-               linestyles='dashed', zorder=2)
+    ax10.vlines(x=min(phot_data[0][0]) - 0.05, ymin=-0.005, ymax=be_e,
+        color='r', linestyles='dashed', zorder=2)
+    ax10.hlines(y=be_e, xmin=min(phot_data[0][0]), xmax=bright_end, color='r',
+        linestyles='dashed', zorder=2)
     # If any method could be used.
     if err_all_fallback is False and err_max_fallback is False:
         # Plot curve(s) according to the method used.
         if er_mode == 'eyefit':
             # Unpack params.
-            popt_umag, pol_mag, popt_ucol1, pol_col1, mag_val_left, \
-            mag_val_right, col1_val_left, col1_val_right = err_plot
-
+            popt_mag_col, pol_mag_col, top_val_left, top_val_right, \
+            bot_val_left, bot_val_right = err_plot
             # Plot left side of upper envelope (exponential).
-            ax10.plot(mag_val_left, exp_func(mag_val_left, *popt_umag), 'r--',
-                lw=2., zorder=3)
+            ax10.plot(top_val_left, exp_func(top_val_left,
+            *popt_mag_col[y_axis][diag_axis[3]]), 'r--', lw=2., zorder=3)
             # Plot right side of upper envelope (polynomial).
-            ax10.plot(mag_val_right, np.polyval(pol_mag, (mag_val_right)),
-                'r--', lw=2., zorder=3)
+            ax10.plot(top_val_right,
+                np.polyval(pol_mag_col[y_axis][diag_axis[3]],
+                    (top_val_right)), 'r--', lw=2., zorder=3)
         elif er_mode == 'lowexp':
             # Unpack params.
             popt_mag, popt_col1 = err_plot
             # Plot exponential curve.
-            mag_x = np.linspace(bright_end, max(mag_data), 50)
+            mag_x = np.linspace(bright_end, max(phot_x), 50)
             ax10.plot(mag_x, exp_func(mag_x, *popt_mag), 'r-', zorder=3)
     # Plot rejected stars.
     if len(stars_out_rjct) > 0:
-        # Only attempt to pot if any star is stored in the list.
-        plt.scatter(zip(*stars_out_rjct)[3], zip(*stars_out_rjct)[4],
-            marker='x', c='teal', s=15, zorder=1)
+        # Only attempt to plot if any star is stored in the list.
+        stars_out_rjct_temp = [[], []]
+        for star in stars_out_rjct:
+            # Add 3 to obtain the correct list.
+            stars_out_rjct_temp[0].append(star[3][0])
+            stars_out_rjct_temp[1].append(star[diag_axis[2] + 4][diag_axis[3]])
+        plt.scatter(stars_out_rjct_temp[0], stars_out_rjct_temp[1], marker='x',
+            c='teal', s=15, zorder=1)
     if len(stars_in_rjct) > 0:
-        plt.scatter(zip(*stars_in_rjct)[3], zip(*stars_in_rjct)[3], marker='x',
+        stars_in_rjct_temp = [[], []]
+        for star in stars_in_rjct:
+            # Add 3 to obtain the correct list.
+            stars_in_rjct_temp[0].append(star[3][0])
+            stars_in_rjct_temp[1].append(star[diag_axis[2] + 4][diag_axis[3]])
+        plt.scatter(stars_in_rjct_temp[0], stars_in_rjct_temp[1], marker='x',
             c='teal', s=15, zorder=1)
     # Plot accepted stars.
-    plt.scatter(zip(*cl_region)[3], zip(*cl_region)[4], marker='o', c='k',
+    stars_in_temp = [[], []]
+    for star in cl_region:
+        # Add 3 to obtain the correct list.  # TODO: add 3 or 4?
+        stars_in_temp[0].append(star[3][0])
+        stars_in_temp[1].append(star[diag_axis[2] + 4][diag_axis[3]])
+    plt.scatter(stars_in_temp[0], stars_in_temp[1], marker='o', c='r',
                 s=1, zorder=2)
-    plt.scatter(zip(*stars_out)[3], zip(*stars_out)[4], marker='o', c='k',
-                s=1, zorder=2)
+    stars_out_temp = [[], []]
+    for star in stars_out:
+        # Add 3 to obtain the correct list.  # TODO: add 3 or 4?
+        stars_out_temp[0].append(star[3][0])
+        stars_out_temp[1].append(star[diag_axis[2] + 4][diag_axis[3]])
+    plt.scatter(stars_out_temp[0], stars_out_temp[1], marker='o', c='b',
+        s=1, zorder=2)
 
-    # Color error
+    # Bottom photometric error.
     ax11 = plt.subplot(gs1[5, 6:8])
     #Set plot limits
-    x_min, x_max = min(mag_data) - 0.5, max(mag_data) + 0.5
     plt.xlim(x_min, x_max)
     plt.ylim(-0.005, e_max + (e_max / 5.))
     #Set axis labels
     plt.ylabel('$\sigma_{' + x_ax + '}$', fontsize=18)
-    plt.xlabel('$' + y_ax + '$', fontsize=18)
+    plt.xlabel('$' + main_mag_name + '$', fontsize=18)
     # Set minor ticks
     ax11.minorticks_on()
     # Plot e_max line.
     ax11.hlines(y=e_max, xmin=x_min, xmax=x_max, color='r',
                linestyles='dashed', zorder=2)
     # Plot rectangle.
-    bright_end = min(mag_data) + be
+    bright_end = min(phot_data[0][0]) + be
     ax11.vlines(x=bright_end + 0.05, ymin=-0.005, ymax=be_e, color='r',
                linestyles='dashed', zorder=2)
-    ax11.vlines(x=min(mag_data) - 0.05, ymin=-0.005, ymax=be_e, color='r',
-               linestyles='dashed', zorder=2)
-    ax11.hlines(y=be_e, xmin=min(mag_data), xmax=bright_end, color='r',
-               linestyles='dashed', zorder=2)
+    ax11.vlines(x=min(phot_data[0][0]) - 0.05, ymin=-0.005, ymax=be_e,
+        color='r', linestyles='dashed', zorder=2)
+    ax11.hlines(y=be_e, xmin=min(phot_data[0][0]), xmax=bright_end, color='r',
+        linestyles='dashed', zorder=2)
     # If any method could be used.
     if err_all_fallback is False and err_max_fallback is False:
         # Plot curve(s) according to the method used.
         if er_mode == 'eyefit':
-            # Unpack params.
-            popt_mag, pol_mag, popt_col1, pol_col1, mag_val_left, \
-            mag_val_right, col1_val_left, col1_val_right = err_plot
-
-            # Plot left side: exponential envelope.
-            ax11.plot(col1_val_left, exp_func(col1_val_left, *popt_col1), 'r--',
-                lw=2., zorder=3)
-            # Plot right side: polynomial envelope.
-            ax11.plot(col1_val_right, np.polyval(pol_col1, (col1_val_right)),
-                'r--', lw=2., zorder=3)
+            # Plot left side of upper envelope (exponential).
+            ax11.plot(bot_val_left, exp_func(bot_val_left,
+            *popt_mag_col[x_axis][diag_axis[1]]), 'r--', lw=2., zorder=3)
+            # Plot right side of upper envelope (polynomial).
+            ax11.plot(bot_val_right,
+                np.polyval(pol_mag_col[x_axis][diag_axis[1]],
+                    (bot_val_right)), 'r--', lw=2., zorder=3)
         elif er_mode == 'lowexp':
             # Unpack params.
             popt_mag, popt_col1 = err_plot
@@ -575,22 +631,41 @@ def make_plots(output_subdir, clust_name, x_data, y_data, gd_params,
             ax11.plot(mag_x, exp_func(mag_x, *popt_col1), 'r-', zorder=3)
     # Plot rejected stars.
     if len(stars_out_rjct) > 0:
-        # Only attempt to pot if any star is stored in the list.
-        plt.scatter(zip(*stars_out_rjct)[3], zip(*stars_out_rjct)[6],
-            marker='x', c='teal', s=15, zorder=1)
-    if len(stars_in_rjct) > 0:
-        plt.scatter(zip(*stars_in_rjct)[3], zip(*stars_in_rjct)[6], marker='x',
+        # Only attempt to plot if any star is stored in the list.
+        stars_out_rjct_temp = [[], []]
+        for star in stars_out_rjct:
+            # Add 3 to obtain the correct list.  # TODO: add 3 or 4?
+            stars_out_rjct_temp[0].append(star[3][0])
+            stars_out_rjct_temp[1].append(star[diag_axis[0] + 4][diag_axis[1]])
+        plt.scatter(stars_out_rjct_temp[0], stars_out_rjct_temp[1], marker='x',
+            c='teal', s=15, zorder=1)
+        stars_in_rjct_temp = [[], []]
+        for star in stars_in_rjct:
+            # Add 3 to obtain the correct list.  # TODO: add 3 or 4?
+            stars_in_rjct_temp[0].append(star[3][0])
+            stars_in_rjct_temp[1].append(star[diag_axis[0] + 4][diag_axis[1]])
+        plt.scatter(stars_in_rjct_temp[0], stars_in_rjct_temp[1], marker='x',
             c='teal', s=15, zorder=1)
     # Plot accepted stars.
-    plt.scatter(zip(*cl_region)[3], zip(*cl_region)[6], marker='o', c='k',
+    stars_in_temp = [[], []]
+    for star in cl_region:
+        # Add 3 to obtain the correct list.  # TODO: add 3 or 4?
+        stars_in_temp[0].append(star[3][0])
+        stars_in_temp[1].append(star[diag_axis[0] + 4][diag_axis[1]])
+    plt.scatter(stars_in_temp[0], stars_in_temp[1], marker='o', c='k',
                 s=1, zorder=2)
-    plt.scatter(zip(*stars_out)[3], zip(*stars_out)[6], marker='o', c='k',
-                s=1, zorder=2)
+    stars_out_temp = [[], []]
+    for star in stars_out:
+        # Add 3 to obtain the correct list.  # TODO: add 3 or 4?
+        stars_out_temp[0].append(star[3][0])
+        stars_out_temp[1].append(star[diag_axis[0] + 4][diag_axis[1]])
+    plt.scatter(stars_out_temp[0], stars_out_temp[1], marker='o', c='k',
+        s=1, zorder=2)
 
     # LF of stars in cluster region and outside.
     ax12 = plt.subplot(gs1[6:8, 0:2])
     #Set plot limits
-    x_min, x_max = min(mag_data) - 0.5, max(mag_data) + 0.5
+    x_min, x_max = min(phot_x) - 0.5, max(phot_x) + 0.5
     plt.xlim(x_max, x_min)
     ax12.minorticks_on()
     # Only draw units on axis (ie: 1, 2, 3)
@@ -654,16 +729,16 @@ def make_plots(output_subdir, clust_name, x_data, y_data, gd_params,
         ax13.set_ylabel('$mag^*$', fontsize=18)
         ax13.minorticks_on()
         ax13.grid(b=True, which='major', color='gray', linestyle='--', lw=1)
-        text1 = '$' + y_ax + '^{*}_{cl+fl}$'
-        text2 = '$' + x_ax0 + '^{*}_{cl+fl}$'
+        text1 = '$' + y_ax + '^{*} {cl+fl}$'
+        text2 = '$' + x_ax0 + '^{*} {cl+fl}$'
         # Cluster + field integrated magnitude curve.
         plt.plot(cl_reg_mag1[0], cl_reg_mag1[1], 'r-', lw=1., label=text1)
         # Cluster integrated magnitude.
         plt.plot(cl_reg_mag2[0], cl_reg_mag2[1], 'r:', lw=2., label=text2)
         # Check if field regiones were defined.
         if not flag_area_stronger:
-            text3 = '$' + y_ax + '^{*}_{fl}$'
-            text4 = '$' + x_ax0 + '^{*}_{fl}$'
+            text3 = '$' + y_ax + '^{*} {fl}$'
+            text4 = '$' + x_ax0 + '^{*} {fl}$'
             # Field average integrated magnitude curve.
             plt.plot(fl_reg_mag1[0], fl_reg_mag1[1], 'b-', lw=1., label=text3)
             # Field average integrated magnitude.
@@ -712,7 +787,7 @@ def make_plots(output_subdir, clust_name, x_data, y_data, gd_params,
         leg.get_frame().set_alpha(0.6)
 
     plot_colorbar = False
-    if da_params[0] != 'skip':
+    if g.da_params[0] != 'skip':
         # Histogram for the distribution of membership probabilities from the
         # decontamination algorithm.
         ax16 = plt.subplot(gs1[8:10, 0:2])
@@ -784,7 +859,7 @@ def make_plots(output_subdir, clust_name, x_data, y_data, gd_params,
         plt.scatter(out_clust_rad[0], out_clust_rad[1], marker='o',
                     s=st_size, edgecolors='black', facecolors='none', lw=0.5)
 
-    if da_params[0] != 'skip' or bf_flag:
+    if g.da_params[0] != 'skip' or bf_flag:
         # Star's membership probabilities on cluster's CMD.
         ax18 = plt.subplot(gs1[8:10, 4:6])
         #Set plot limits
@@ -827,7 +902,7 @@ def make_plots(output_subdir, clust_name, x_data, y_data, gd_params,
             # Plot error bars at several mag values.
             mag_y = np.arange(int(min(m_p_m_temp_inv[1]) + 0.5),
                               int(max(m_p_m_temp_inv[1]) + 0.5) + 0.1)
-            x_val = [min(x_max_cmd, max(col1_data) + 0.2) - 0.4] * len(mag_y)
+            x_val = [min(x_max_cmd, max(phot_y) + 0.2) - 0.4] * len(mag_y)
             # Read average fitted values for exponential error fit.
             popt_mag, popt_col1 = err_lst[:2]
             plt.errorbar(x_val, mag_y, yerr=exp_func(mag_y, *popt_mag),
@@ -881,7 +956,7 @@ def make_plots(output_subdir, clust_name, x_data, y_data, gd_params,
 
         # Set ranges used by plots below.
         min_max_p = []
-        for param in ip_list[1]:
+        for param in ip_list[2]:
             if max(param) != min(param):
                 delta_p = (max(param) - min(param)) * 0.05
             else:
@@ -1209,7 +1284,7 @@ def make_plots(output_subdir, clust_name, x_data, y_data, gd_params,
         cbar.ax.tick_params(labelsize=9)
 
     # Generate output file for each data file.
-    pl_fmt, pl_dpi = pl_params[1:3]
+    pl_fmt, pl_dpi = g.pl_params[1:3]
     plt.savefig(join(output_subdir, str(clust_name) + '.' + pl_fmt), dpi=pl_dpi)
 
     # Close to release memory.
