@@ -92,26 +92,22 @@ def interp_isoch(isoch_list):
     return isochs_interp
 
 
-def read_met_file(met_f, age_values, cmd_select, isoch_format):
+def read_met_file(met_f, age_values, line_start, mass_i, mass_a, mags_idx,
+    age_format, sys_idx):
     '''
     Read a given metallicity file and return the isochrones for the ages
     within the age range.
     '''
 
-    # Read line start format and columns indexes for the selected set of
-    # Girardi isochrones.
-    line_start, age_format, imass_idx, mag1_idx, mag2_idx = isoch_format
-
     # Initialize list that will hold all the isochrones for this
     # metallicity value.
-    metal_isoch = []
+    met_i = []
 
     # Open the metallicity file.
     with open(met_f, mode="r") as f_iso:
 
-        # Define empty lists.
-        isoch_col, isoch_mag, isoch_mas = [], [], []
-
+        # Initial empty list for masses and magnitudes.
+        isoch_mas_mag = []
         # Initial value for age to avoid 'not defined' error.
         age = -99.
 
@@ -123,13 +119,11 @@ def read_met_file(met_f, age_values, cmd_select, isoch_format):
 
                 # Save stored values if these exist.
                 # Skip first age for which the lists will be empty.
-                if isoch_col:
-                    # Store color, magnitudes and masses for this
-                    # isochrone.
-                    metal_isoch.append([isoch_col, isoch_mag,
-                        isoch_mas])
-                    # Reset lists.
-                    isoch_col, isoch_mag, isoch_mas = [], [], []
+                if isoch_mas_mag:
+                    # Store magnitudes and masses for this isochrone.
+                    met_i.append(isoch_mas_mag)
+                    # Reset list.
+                    isoch_mas_mag = []
 
                 # Read age value for this isochrone.
                 age0 = re.findall(age_format, line)  # Find age in line.
@@ -141,29 +135,44 @@ def read_met_file(met_f, age_values, cmd_select, isoch_format):
 
                 # Save mag, color and mass values for each isochrone.
                 if not line.startswith("#"):
+                    # Split line.
                     reader = line.split()
-                    # Color.
-                    # Generate colors correctty <-- HARDCODED, FIX
-                    if cmd_select in {2, 5}:
-                        isoch_col.append(float(reader[mag1_idx]) -
-                        float(reader[mag2_idx]))
-                    else:
-                        isoch_col.append(float(reader[mag2_idx]) -
-                        float(reader[mag1_idx]))
-                    # Magnitude.
-                    isoch_mag.append(float(reader[mag1_idx]))
-                    # Mass
-                    isoch_mas.append(float(reader[imass_idx]))
+                    # Only save masses for one photometric system since
+                    # its values are equivalent for the same metallicty and
+                    # age across photometric systems.
+                    if sys_idx == 0:
+                        # Store masses.
+                        isoch_mas_mag.append(float(reader[mass_i]))
+                        isoch_mas_mag.append(float(reader[mass_a]))
+                    # Store defined magnitudes.
+                    for mag_i in mags_idx:
+                        isoch_mas_mag.append(float(reader[mag_i]))
 
         # Save the last isochrone when EOF is reached.
         else:
             # If list is not empty.
-            if isoch_col:
-                # Store colors, magnitudes and masses for this
-                # isochrone.
-                metal_isoch.append([isoch_col, isoch_mag, isoch_mas])
+            if isoch_mas_mag:
+                # Store masses and magnitudes for this isochrone.
+                met_i.append(isoch_mas_mag)
 
-    return metal_isoch
+    # Number of columns stored. Add 2 to account for the 2 masses *only*
+    # if this is the first run, ie: for the first photom system. The rest
+    # of the phot systems (if more are used) do not have their masses read
+    # since mass values are equivalent for equal metallicities and ages.
+    n_cols = 2 + len(mags_idx) if sys_idx == 0 else len(mags_idx)
+    # Split read values so that the resulting list looks like this:
+    #
+    # metal_isochs = [age_1, age_2, ..., age_N]
+    # age_i = [mass_i, mass_a, mag_1, mag_2, ..., _mag_M]
+    #
+    # Each mass_x and mag_x are lists that hold all theoretical values
+    # read from the metallicity file for that given age.
+    metal_isochs = []
+    for a_i in range(len(age_values)):
+        met_i0 = np.split(np.asarray(met_i[a_i]), len(met_i[a_i]) / n_cols)
+        metal_isochs.append(zip(*met_i0))
+
+    return metal_isochs
 
 
 def get_isochs(mypath, met_f_filter, age_values, syst, sys_idx):
@@ -355,7 +364,7 @@ def ip(mypath, phot_params):
         print '\n', 'met_vals', met_values
         print 'age_vals', age_values
 
-        print 'Interpolating all isochrones for each photometric system.'
+        print 'Interpolating all isochrones for each photometric system.\n'
         # Get isochrones for every photometric system defined.
         isochs_interp = []
         for sys_idx, syst in enumerate(phot_params[2]):
