@@ -184,9 +184,6 @@ def get_isochs(mypath, met_f_filter, age_values, syst, sys_idx):
     # Read line start format and columns indexes for the selected set of
     # Girardi isochrones.
     line_start, mass_i, mass_a, mags_idx = gif.i_format(syst)
-
-    iso_select = g.ps_params[0]
-    iso_path = join(mypath + '/isochrones/' + iso_select + '_' + syst[0])
     age_format = gif.age_f()
 
     # Lists that store the masses and magnitudes of each isochrone.
@@ -198,9 +195,8 @@ def get_isochs(mypath, met_f_filter, age_values, syst, sys_idx):
 
     # Iterate in order through all the metallicity files stored for the
     # selected set of isochrones.
-    for met_f in met_f_filter:
+    for met_file in met_f_filter:
 
-        met_file = join(iso_path, met_f)
         metal_isoch = read_met_file(met_file, age_values, line_start, mass_i,
             mass_a, mags_idx, age_format, sys_idx)
 
@@ -272,10 +268,11 @@ def get_ranges(par_ranges):
     return param_ranges, param_rs
 
 
-def get_ages(met_file, age_format):
+def get_ages(met_file):
     '''
     Read all available ages in metallicity file.
     '''
+    age_format = gif.age_f()
 
     # Open the metallicity file.
     with open(met_file, mode="r") as f_iso:
@@ -313,6 +310,7 @@ def get_met_age_values(iso_path):
     Run once to obtain the correct metallicities and ages to be used
     by the code.
     '''
+
     # Unpack.
     par_ranges = g.ps_params[1]
 
@@ -320,15 +318,12 @@ def get_met_age_values(iso_path):
     # I.e.: store all metallicity values available.
     met_vals_all, metal_files = get_metals(iso_path)
 
-    age_format = gif.age_f()
-    met_file = join(iso_path, metal_files[0])
-
     # Read all ages from the first metallicity file defined.
     # *WE ASUME ALL METALLICITY FILES HAVE THE SAME NUMBER OF AGE VALUES*
     # (that's why we use the first metallicity file stored to obtain all
     # the age values)
     # I.e: store all age values available.
-    age_vals_all = get_ages(met_file, age_format)
+    age_vals_all = get_ages(metal_files[0])
 
     # Get parameters ranges stored in params_input.dat file.
     param_ranges, param_rs = get_ranges(par_ranges)
@@ -362,7 +357,7 @@ def ip(mypath, phot_params):
         get_met_age_values(iso_path)
 
         print '\n', 'met_vals', met_values
-        print 'age_vals', age_values
+        print 'age_vals', age_values, '\n'
 
         print 'Interpolating all isochrones for each photometric system.\n'
         # Get isochrones for every photometric system defined.
