@@ -370,19 +370,23 @@ def ip(mypath, iso_path, phot_params):
                             isochs_interp[m_i][a_i] = np.append(
                                 isochs_interp[m_i][a_i], [mag], 0)
 
-        # Get isochrones and their parameter values.
-        isoch_list = get_isochs(cmd_select, met_f_filter, age_values,
-            isoch_format)
+        # isochs_interp = [metal_1, ..., metal_P]
+        # metal_i =[age_i, ..., age_Q]
+        # age_i = [mass_i, mass_a, mag1, ..., mag_N]
+        #
+        # mag_1, ..., mag_N are the magnitudes defined in *all* the photom
+        # systems, stored in the order presented in photom_params[2]
 
-        # Interpolate extra points into all isochrones.
-        isochs_interp = [[] for _ in isoch_list]
-        for i, _ in enumerate(isoch_list):
-            for isoch in _:
-                isochs_interp[i].append(interp_isoch(isoch))
+        # Generate colors (if any) and order magnitudes/colors to match the
+        # order of the input photometric data.
+        isochs_order, ccm_coefs = get_mc_order(phot_params, isochs_interp)
+        # isochs_order = [metal_1, ..., metal_P]
+        # metal_i =[age_i, ..., age_Q]
+        # age_i = [mass_i, mass_a, [mag1, ..., magN], [col1, ..., colM]
 
         # Pack params.
         param_values = [met_values, age_values] + param_ranges[2:]
-        ip_list = [isochs_interp, param_values, param_rs]
+        ip_list = [isochs_order, ccm_coefs, param_values, param_rs]
 
         iso_ver = {'10': '1.0', '11': '1.1', '12': '1.2S'}
         print ("PARSEC v{} theoretical isochrones read,".format(
