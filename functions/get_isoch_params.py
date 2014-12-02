@@ -204,42 +204,6 @@ def match_ranges(met_vals_all, met_files, age_vals_all, z_range, a_range):
     return met_f_filter, met_values, age_values
 
 
-def get_metals(iso_path):
-    '''
-    Read names of all metallicity files stored in isochrones path given and
-    store them along with the z values they represent.
-    '''
-
-    metal_files = sorted(os.listdir(iso_path))
-    met_vals_all, met_files = [], []
-    # Iterate in order through all the metallicity files stored for the
-    # selected set of isochrones.
-    for met_file in metal_files:
-        # Extract metallicity value from the name of the file.
-        # *THE NAME OF THE FILE IS IMPORTANT*
-        met_vals_all.append(float(met_file[:-4]))
-        # Store full path to file.
-        met_files.append(join(iso_path, met_file))
-
-    return met_vals_all, met_files
-
-
-def get_ages(met_file, age_format):
-    '''
-    Read all available ages in metallicity file.
-    '''
-
-    # Open the metallicity file.
-    with open(met_file, mode="r") as f_iso:
-        regex = age_format  # Define regular exoresion.
-        ages0 = re.findall(regex, f_iso.read())  # Find all instances.
-        ages1 = np.asarray(map(float, ages0))  # Map to floats.
-        ages2 = np.log10(ages1)  # Take log10
-        isoch_a = np.around(ages2, 2)  # Round to 2 decimals.
-
-    return isoch_a
-
-
 def get_ranges(par_ranges):
     '''
     Calculate parameter ranges to be used by the selected best fit method.
@@ -276,6 +240,41 @@ def get_ranges(par_ranges):
 
     return param_ranges, param_rs
 
+
+def get_ages(met_file, age_format):
+    '''
+    Read all available ages in metallicity file.
+    '''
+
+    # Open the metallicity file.
+    with open(met_file, mode="r") as f_iso:
+        regex = age_format  # Define regular exoresion.
+        ages0 = re.findall(regex, f_iso.read())  # Find all instances.
+        ages1 = np.asarray(map(float, ages0))  # Map to floats.
+        ages2 = np.log10(ages1)  # Take log10
+        isoch_a = np.around(ages2, 2)  # Round to 2 decimals.
+
+    return isoch_a
+
+
+def get_metals(iso_path):
+    '''
+    Read names of all metallicity files stored in isochrones path given and
+    store them along with the z values they represent.
+    '''
+
+    metal_files = sorted(os.listdir(iso_path))
+    met_vals_all, met_files = [], []
+    # Iterate in order through all the metallicity files stored for the
+    # selected set of isochrones.
+    for met_file in metal_files:
+        # Extract metallicity value from the name of the file.
+        # *THE NAME OF THE FILE IS IMPORTANT*
+        met_vals_all.append(float(met_file[:-4]))
+        # Store full path to file.
+        met_files.append(join(iso_path, met_file))
+
+    return met_vals_all, met_files
 
 
 def ip(ps_params, bf_flag):
