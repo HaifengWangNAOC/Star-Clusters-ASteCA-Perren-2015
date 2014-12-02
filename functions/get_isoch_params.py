@@ -37,6 +37,7 @@ def get_mc_order(phot_params, isochs_interp):
     '''
     Order the magnitudes and colors in the same way as those stored in the
     input photometric data file.
+    Obtain the CCM extinction coeficients for each magnitude and color.
     '''
 
     isoch_order, ccm_coefs = [], [[], []]
