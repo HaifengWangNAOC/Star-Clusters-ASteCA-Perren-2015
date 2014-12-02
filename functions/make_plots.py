@@ -145,7 +145,7 @@ def make_plots(output_subdir, clust_name, phot_params, id_coords, phot_data,
     # Reduced membership.
     min_prob = red_return[1]
     # Best isochrone fit params.
-    bf_flag, best_fit_algor, N_b = g.bf_params
+    bf_flag, best_fit_algor, lkl_method, bin_method, N_b = g.bf_params
     # Genetic algorithm params.
     n_pop, n_gen, fdif, p_cross, cr_sel, p_mut, n_el, n_ei, n_es = g.ga_params
     # Best fitting process results.
