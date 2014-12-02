@@ -7,6 +7,7 @@ Created on Thu Oct 09 11:36:00 2014
 
 import get_in_params as g
 from cmd_phot_systs import phot_mags as pm
+import sys
 
 
 def identify_phot_data():
@@ -55,13 +56,22 @@ def identify_phot_data():
 
     # Identifiers for different photometric systems.
     all_systs = pm()
+
     # Create list with names of photometric systems.
     phot_systs = []
-    for i, phot_syst in enumerate(phot_mags):
-        if phot_syst:
-            # Store names of folders that hold the Girardi isochrones that
-            # correspond to this photometric system.
-            phot_systs.append([all_systs.keys()[i], phot_syst])
+    for i, phot_mags_s in enumerate(phot_mags):
+        if phot_mags_s:
+            # Check that each magnitude is correctly assigned to its
+            # photometric system
+            for m in phot_mags_s:
+                if m not in all_systs.values()[i]:
+                    sys.exit("ERROR: magnitude '{}' does not belong to the "
+                    "photometric\nsystem it is assigned to ({}).".format(m,
+                        all_systs.keys()[i]))
+            # Store part of the names of those folders that hold the Girardi
+            # isochrones that correspond to this photometric system.
+            # The other part is given by the PARSEC version selected.
+            phot_systs.append([all_systs.keys()[i], phot_mags_s])
 
     # Identify photometric data to plot.
     diag_axis = []
