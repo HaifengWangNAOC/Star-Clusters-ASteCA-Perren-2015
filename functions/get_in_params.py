@@ -142,7 +142,3 @@ def init(mypath):
     sc_params = [IMF_name, bin_mr]
     ga_params = [n_pop, n_gen, fdif, p_cross, cr_sel, p_mut, n_el, n_ei, n_es]
     rm_params = [flag_red_memb, min_prob]
-
-    return mode, done_dir, gd_params, gh_params, cr_params, kp_flag,\
-    im_flag, er_params, fr_number, pv_params, da_params, ps_params, bf_params,\
-    sc_params, ga_params, rm_params, pl_params, flag_move_file, axes_params
