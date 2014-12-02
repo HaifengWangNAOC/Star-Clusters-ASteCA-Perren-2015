@@ -7,6 +7,7 @@ Created on Fri Oct 25 10:54:00 2013
 
 import numpy as np
 from scipy.optimize import curve_fit
+import get_in_params as g
 
 
 def two_params(x, cd, rc, fd):
@@ -24,21 +25,19 @@ def three_params(x, rt, cd, rc, fd):
         1 / np.sqrt(1 + (rt / rc) ** 2)) ** 2 + fd
 
 
-def get_king_profile(kp_flag, clust_rad, field_dens, radii, ring_density,
-    coord_lst):
+def get_king_profile(clust_rad, field_dens, radii, ring_density):
     '''
     Function to fit the 3-params King profile to a given radial density.
     The field density value is fixed and the core radius, tidal radius and
     maximum central density are fitted.
     '''
 
-    coord = coord_lst[0]
     # Flags that indicate either no convergence or that the fits were not
     # attempted.
     flag_2pk_conver, flag_3pk_conver = False, False
 
     # Check flag to run or skip.
-    if kp_flag:
+    if g.kp_flag:
 
         # Field density value is fixed.
         fd = field_dens
@@ -78,7 +77,8 @@ def get_king_profile(kp_flag, clust_rad, field_dens, radii, ring_density,
         # calculate approximate number of cluster members with eq (3) from
         # Froebrich et al. (2007); 374, 399-408
         if flag_3pk_conver is True:
-            print 'Tidal radius obtained: {:g} {}.'.format(rt, coord)
+            print 'Tidal radius obtained: {:g} {}.'.format(rt,
+                g.gd_params[0][-1])
             x = 1 + (rt / rc) ** 2
             n_c_k = int(round((np.pi * cd * rc ** 2) * (np.log(x) -
             4 + (4 * np.sqrt(x) + (x - 1)) / x)))
