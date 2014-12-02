@@ -9,7 +9,149 @@ import os
 import re
 from os.path import join
 import numpy as np
-from girardi_isochs_format import isoch_format as i_format
+import get_in_params as g
+import girardi_isochs_format as gif
+from cmd_phot_systs import phot_wavelengths as pw
+from get_CCM_coefs import ccm_model as gcc
+
+
+def get_mag_idx(mi, phot_params):
+    '''
+    Return index of magnitude in stored isochrones columns.
+    '''
+    # Start on 2 to account for the initial and actual mass columns.
+    main_mag_idx = 2
+    for sys in phot_params[2]:
+        for mag in sys[1]:
+            if mag == mi:
+                # Index of magnitude in stored theoretical values obtained.
+                # Get wavelength in inverse microns for this magnitude.
+                mw = pw(sys[0], mag)
+                # Get CCM coeficient for this magnitude.
+                ccm_c = gcc(mw)
+                return main_mag_idx, ccm_c
+            else:
+                main_mag_idx += 1
+
+
+def get_mc_order(phot_params, isochs_interp):
+    '''
+    Order the magnitudes and colors in the same way as those stored in the
+    input photometric data file.
+    '''
+
+    isoch_order, ccm_coefs = [], [[], []]
+    for _met in isochs_interp:
+        met = []
+        for _isoch in _met:
+            # Append masses and make room for mags and colors.
+            isoch = [_isoch[0], _isoch[1], [], []]
+            # Search and append ordered magnitudes.
+            for m in phot_params[1][0]:
+                # Return index of this mag as stored in phot_params[2]
+                mi, ccm_i = get_mag_idx(m[1:], phot_params)
+                isoch[2].append(_isoch[mi])
+                ccm_coefs[0].append(ccm_i)
+            # Search and append ordered colors.
+            for c in phot_params[1][1]:
+                # Return index of this mag as stored in phot_params[2]
+                c1, c2 = c[1:].split('-')
+                # Search for indexes of each magnitude in the color.
+                m1, ccm_1 = get_mag_idx(c1, phot_params)
+                m2, ccm_2 = get_mag_idx(c2, phot_params)
+                # Append color.
+                isoch[3].append((_isoch[m1] - _isoch[m2]))
+                ccm_coefs[1].append((ccm_1 - ccm_2))
+            met.append(isoch)
+        isoch_order.append(met)
+
+    return isoch_order, ccm_coefs
+
+
+def interp_isoch(isochrone):
+    '''
+    Interpolate extra color, magnitude and masses into the isochrone.
+    '''
+    N = 1500
+    t, xp = np.linspace(0, 1, N), np.linspace(0, 1, len(isochrone[0]))
+    # Store isochrone's interpolated values.
+    isoch_inter = np.asarray([np.interp(t, xp, _) for _ in isochrone])
+
+    return isoch_inter
+
+
+def read_met_file(met_f, age_values, cmd_select, isoch_format):
+    '''
+    Read a given metallicity file and return the isochrones for the ages
+    within the age range.
+    '''
+
+    # Read line start format and columns indexes for the selected set of
+    # Girardi isochrones.
+    line_start, age_format, imass_idx, mag1_idx, mag2_idx = isoch_format
+
+    # Initialize list that will hold all the isochrones for this
+    # metallicity value.
+    metal_isoch = []
+
+    # Open the metallicity file.
+    with open(met_f, mode="r") as f_iso:
+
+        # Define empty lists.
+        isoch_col, isoch_mag, isoch_mas = [], [], []
+
+        # Initial value for age to avoid 'not defined' error.
+        age = -99.
+
+        # Iterate through each line in the file.
+        for line in f_iso:
+
+            # Identify beginning of a defined isochrone.
+            if line.startswith(line_start):
+
+                # Save stored values if these exist.
+                # Skip first age for which the lists will be empty.
+                if isoch_col:
+                    # Store color, magnitudes and masses for this
+                    # isochrone.
+                    metal_isoch.append([isoch_col, isoch_mag,
+                        isoch_mas])
+                    # Reset lists.
+                    isoch_col, isoch_mag, isoch_mas = [], [], []
+
+                # Read age value for this isochrone.
+                age0 = re.findall(age_format, line)  # Find age in line.
+                age = np.around(np.log10(float(age0[0])), 2)
+
+            # If age value falls inside the given range, store the
+            # isochrone's data.
+            if age in age_values:
+
+                # Save mag, color and mass values for each isochrone.
+                if not line.startswith("#"):
+                    reader = line.split()
+                    # Color.
+                    # Generate colors correctty <-- HARDCODED, FIX
+                    if cmd_select in {2, 5}:
+                        isoch_col.append(float(reader[mag1_idx]) -
+                        float(reader[mag2_idx]))
+                    else:
+                        isoch_col.append(float(reader[mag2_idx]) -
+                        float(reader[mag1_idx]))
+                    # Magnitude.
+                    isoch_mag.append(float(reader[mag1_idx]))
+                    # Mass
+                    isoch_mas.append(float(reader[imass_idx]))
+
+        # Save the last isochrone when EOF is reached.
+        else:
+            # If list is not empty.
+            if isoch_col:
+                # Store colors, magnitudes and masses for this
+                # isochrone.
+                metal_isoch.append([isoch_col, isoch_mag, isoch_mas])
+
+    return metal_isoch
 
 
 def get_metals(iso_path):
@@ -109,80 +251,6 @@ def match_ranges(met_vals_all, met_files, age_vals_all, z_range, a_range):
     return met_f_filter, met_values, age_values
 
 
-def read_met_file(met_f, age_values, cmd_select, isoch_format):
-    '''
-    Read a given metallicity file and return the isochrones for the ages
-    within the age range.
-    '''
-
-    # Read line start format and columns indexes for the selected set of
-    # Girardi isochrones.
-    line_start, age_format, imass_idx, mag1_idx, mag2_idx = isoch_format
-
-    # Initialize list that will hold all the isochrones for this
-    # metallicity value.
-    metal_isoch = []
-
-    # Open the metallicity file.
-    with open(met_f, mode="r") as f_iso:
-
-        # Define empty lists.
-        isoch_col, isoch_mag, isoch_mas = [], [], []
-
-        # Initial value for age to avoid 'not defined' error.
-        age = -99.
-
-        # Iterate through each line in the file.
-        for line in f_iso:
-
-            # Identify beginning of a defined isochrone.
-            if line.startswith(line_start):
-
-                # Save stored values if these exist.
-                # Skip first age for which the lists will be empty.
-                if isoch_col:
-                    # Store color, magnitudes and masses for this
-                    # isochrone.
-                    metal_isoch.append([isoch_col, isoch_mag,
-                        isoch_mas])
-                    # Reset lists.
-                    isoch_col, isoch_mag, isoch_mas = [], [], []
-
-                # Read age value for this isochrone.
-                age0 = re.findall(age_format, line)  # Find age in line.
-                age = np.around(np.log10(float(age0[0])), 2)
-
-            # If age value falls inside the given range, store the
-            # isochrone's data.
-            if age in age_values:
-
-                # Save mag, color and mass values for each isochrone.
-                if not line.startswith("#"):
-                    reader = line.split()
-                    # Color.
-                    # Generate colors correctty <-- HARDCODED, FIX
-                    if cmd_select in {2, 5}:
-                        isoch_col.append(float(reader[mag1_idx]) -
-                        float(reader[mag2_idx]))
-                    else:
-                        isoch_col.append(float(reader[mag2_idx]) -
-                        float(reader[mag1_idx]))
-                    # Magnitude.
-                    isoch_mag.append(float(reader[mag1_idx]))
-                    # Mass
-                    isoch_mas.append(float(reader[imass_idx]))
-
-        # Save the last isochrone when EOF is reached.
-        else:
-            # If list is not empty.
-            if isoch_col:
-                # Store colors, magnitudes and masses for this
-                # isochrone.
-                metal_isoch.append([isoch_col, isoch_mag, isoch_mas])
-
-    return metal_isoch
-
-
 def get_isochs(cmd_select, met_f_filter, age_values, isoch_format):
     '''
     Stores the available isochrones of different metallicities and
@@ -207,18 +275,6 @@ def get_isochs(cmd_select, met_f_filter, age_values, isoch_format):
         isoch_list.append(metal_isoch)
 
     return isoch_list
-
-
-def interp_isoch(isochrone):
-    '''
-    Interpolate extra color, magnitude and masses into the isochrone.
-    '''
-    N = 1500
-    t, xp = np.linspace(0, 1, N), np.linspace(0, 1, len(isochrone[0]))
-    # Store isochrone's interpolated values.
-    isoch_inter = np.asarray([np.interp(t, xp, _) for _ in isochrone])
-
-    return isoch_inter
 
 
 def ip(ps_params, bf_flag):
