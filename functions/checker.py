@@ -35,7 +35,6 @@ def check(mypath, cl_files):
         if pckg not in inst_packgs_lst:
             print "ERROR: '{}' package is not installed.".format(pckg)
             sys.exit("Install with: pip install {}".format(pckg))
-    import numpy as np
 
     # Check if params_input.dat file exists.
     if not isfile(join(mypath, 'params_input.dat')):
@@ -248,11 +247,11 @@ def check(mypath, cl_files):
             print traceback.format_exc()
             sys.exit("ERROR: unknown error reading metallicity files.")
 
-    # Check IMF defined.
-    imfs_dict = {'kroupa_1993', 'chabrier_2001', 'kroupa_2002'}
-    if g.sc_params[0] not in imfs_dict:
-        sys.exit("ERROR: Name of IMF ({}) is incorrect.".format(
-            g.sc_params[0]))
+        # Check IMF defined.
+        imfs_dict = {'kroupa_1993', 'chabrier_2001', 'kroupa_2002'}
+        if g.sc_params[0] not in imfs_dict:
+            sys.exit("ERROR: Name of IMF ({}) is incorrect.".format(
+                g.sc_params[0]))
 
     print 'Full check done.\n'
     return phot_params, ip_list, R_in_place
