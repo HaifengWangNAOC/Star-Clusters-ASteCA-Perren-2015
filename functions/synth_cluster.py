@@ -100,7 +100,7 @@ def compl_func(isoch_binar, completeness):
     return isoch_compl
 
 
-def binarity(isoch_mass, isoch_cut, bin_frac, bin_mass_ratio, cmd_sel):
+def binarity(isoch_mass, isoch_cut, bin_frac, bin_mass_ratio):
     '''
     Randomly select a fraction of stars to be binaries.
     '''
@@ -212,12 +212,12 @@ def isoch_cut_mag(isoch_moved, completeness):
     return isoch_cut
 
 
-def synth_clust(err_lst, completeness, st_d_bin_mr, isochrone, model, cmd_sel):
+def synth_clust(err_lst, completeness, st_d_bin_mr, isochrone, model):
     '''
     Main function.
 
     Takes an isochrone and returns a synthetic cluster created according to
-    a certain mass distribution.
+    a certain mass distribution and cluster parameters.
     '''
 
     # Unpack synthetic cluster parameters.
@@ -225,8 +225,7 @@ def synth_clust(err_lst, completeness, st_d_bin_mr, isochrone, model, cmd_sel):
     e, d, M_total, bin_frac = model[2:]
 
     # Move synth cluster with the values 'e' and 'd'.
-    isoch_moved = move_isoch(cmd_sel, [isochrone[0], isochrone[1]], e, d) +\
-    [isochrone[2]]
+    isoch_moved = move_isoch(isochrone, e, d, ccm_coefs)
 
     # Get isochrone minus those stars beyond the magnitude cut.
     isoch_cut = isoch_cut_mag(isoch_moved, completeness)
@@ -255,7 +254,7 @@ def synth_clust(err_lst, completeness, st_d_bin_mr, isochrone, model, cmd_sel):
 
             # Assignment of binarity.
             isoch_binar = binarity(isoch_mass, isoch_cut, bin_frac,
-                bin_mass_ratio, cmd_sel)
+                bin_mass_ratio)
 
             # Completeness limit removal of stars.
             isoch_compl = compl_func(isoch_binar, completeness)
