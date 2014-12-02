@@ -198,7 +198,8 @@ def check(mypath, cl_files):
         # Check if /isochrones folder exists.
         for syst in phot_params[2]:
             # Set iso_path for this system.
-            iso_path = join(mypath + '/isochrones/' + syst[0])
+            iso_path = join(mypath + '/isochrones/' + iso_select + '_' +
+                syst[0])
             if not isdir(iso_path):
                 sys.exit("ERROR: 'Best synthetic cluster fit' function is set"
                     " to run but the folder:\n\n {}\n\ndoes not exists.".format(
