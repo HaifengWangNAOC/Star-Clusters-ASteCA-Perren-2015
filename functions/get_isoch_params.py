@@ -277,6 +277,39 @@ def get_metals(iso_path):
     return met_vals_all, met_files
 
 
+def get_met_age_values(iso_path):
+    '''
+    Run once to obtain the correct metallicities and ages to be used
+    by the code.
+    '''
+    # Unpack.
+    par_ranges = g.ps_params[1]
+
+    # Read names of all metallicity files stored in isochrones path given.
+    # I.e.: store all metallicity values available.
+    met_vals_all, metal_files = get_metals(iso_path)
+
+    age_format = gif.age_f()
+    met_file = join(iso_path, metal_files[0])
+
+    # Read all ages from the first metallicity file defined.
+    # *WE ASUME ALL METALLICITY FILES HAVE THE SAME NUMBER OF AGE VALUES*
+    # (that's why we use the first metallicity file stored to obtain all
+    # the age values)
+    # I.e: store all age values available.
+    age_vals_all = get_ages(met_file, age_format)
+
+    # Get parameters ranges stored in params_input.dat file.
+    param_ranges, param_rs = get_ranges(par_ranges)
+
+    # Match values in metallicity and age ranges with those available.
+    z_range, a_range = param_ranges[:2]
+    met_f_filter, met_values, age_values = match_ranges(met_vals_all,
+        metal_files, age_vals_all, z_range, a_range)
+
+    return param_ranges, param_rs, met_f_filter, met_values, age_values
+
+
 def ip(ps_params, bf_flag):
     '''
     Read isochrones and parameters if best fit function is set to run.
