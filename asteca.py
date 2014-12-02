@@ -27,7 +27,7 @@ def main():
     # As part of the checking process, and to save time, the isochrone
     # files are read and stored here.
     # The 'R_in_place' flag indicates that R and rpy2 are installed.
-    ip_list, R_in_place = check(mypath, cl_files)
+    phot_params, ip_list, R_in_place = check(mypath, cl_files)
 
     # Import here to ensure the check has passed and all the necessary
     # packages are installed.
@@ -38,7 +38,7 @@ def main():
 
         try:
             # Call function that calls all sub-functions sequentially.
-            af(mypath, cl_file, ip_list, R_in_place)
+            af(mypath, cl_file, phot_params, ip_list, R_in_place)
         except Exception:
             print '\n!!! --> {}/{} could not be processed <-- !!!\n'.format(
                 *cl_file)
