@@ -13,6 +13,7 @@ from synth_cluster import synth_clust as s_c
 from error_round import round_sig_fig as rsf
 from get_N_IMF import N_IMF as N_imf
 from move_isochrone import move_isoch
+import get_in_params as g
 
 
 def synth_cl_plot(ip_list, isoch_fit_params, cmd_sel, err_lst, completeness,
@@ -71,15 +72,13 @@ def params_errors(best_fit_algor, ip_list, N_b, err_lst, memb_prob_avrg_sort,
     return isoch_fit_errors
 
 
-def best_fit(err_lst, memb_prob_avrg_sort, completeness, ip_list, bf_params,
-             sc_params, ga_params, ps_params):
+def best_fit(err_lst, memb_prob_avrg_sort, completeness, ip_list):
     '''
     Perform a best fitting process to find the cluster's parameters:
     E(B-V), distance (distance modulus), age and metallicity.
     '''
 
-    bf_flag, best_fit_algor, lkl_method, bin_method, N_b = bf_params
-    cmd_sel = ps_params[1]
+    bf_flag, best_fit_algor, lkl_method, bin_method, N_b = g.bf_params
 
     # Check if algorithm should run.
     if bf_flag:
@@ -88,12 +87,12 @@ def best_fit(err_lst, memb_prob_avrg_sort, completeness, ip_list, bf_params,
 
         obs_clust = prep(memb_prob_avrg_sort, lkl_method, bin_method)
 
-        # Obtain the stars distrubuted on the selected IMF's. We run it once
-        # because the array only depends on the IMF selected.
-        st_dist = N_imf(sc_params[0])
+        # Obtain the stars distributed on the selected IMF's. We run it once
+        # here because the array only depends on the IMF selected.
+        st_dist = N_imf(g.sc_params[0])
         # Pack stars distribution in IMF and binars mass ratio to be used by
         # the synthetic cluster function.
-        st_d_bin_mr = [st_dist, sc_params[1]]
+        st_d_bin_mr = [st_dist, g.sc_params[1]]
 
         # Call algorithm to calculate the likelihoods for the set of
         # isochrones and return the best fitting parameters.
@@ -103,7 +102,7 @@ def best_fit(err_lst, memb_prob_avrg_sort, completeness, ip_list, bf_params,
             bin_method if lkl_method == 'dolphin' else lkl_method)
             # Brute force algorithm.
             isoch_fit_params = b_f(err_lst, obs_clust, completeness,
-                                   ip_list, st_d_bin_mr, ga_params, cmd_sel)
+                ip_list, st_d_bin_mr)
 
         elif best_fit_algor == 'genet':
 
@@ -114,19 +113,19 @@ def best_fit(err_lst, memb_prob_avrg_sort, completeness, ip_list, bf_params,
             # so it will print percentages to screen.
             flag_print_perc = True
             isoch_fit_params = g_a(flag_print_perc, err_lst, obs_clust,
-                completeness, ip_list, st_d_bin_mr, ga_params, cmd_sel)
+                completeness, ip_list, st_d_bin_mr)
 
         print ("Best fit params obtained.")
 
         # Assign errors for each parameter.
         isoch_fit_errors = params_errors(best_fit_algor, ip_list, N_b,
-            err_lst, memb_prob_avrg_sort, bf_params, completeness, ga_params,
-            st_d_bin_mr, cmd_sel, isoch_fit_params)
+            err_lst, memb_prob_avrg_sort, completeness, st_d_bin_mr,
+            isoch_fit_params)
 
         # Generate shifted isochrone and synthetic cluster for plotting.
         # Do this BEFORE rounding the parameter values.
         shift_isoch, synth_clst = synth_cl_plot(ip_list, isoch_fit_params,
-            cmd_sel, err_lst, completeness, st_d_bin_mr)
+            err_lst, completeness, st_d_bin_mr)
 
         # Round errors to 1 significant digit and round params values
         # to the corresponding number of significant digits given by
