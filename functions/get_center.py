@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from scipy import stats
 from scipy.ndimage.filters import gaussian_filter
 from display_cent import disp_cent as d_c
+import get_in_params as g
 
 
 def center_approx(hist, xedges, yedges, st_dev_lst):
@@ -101,15 +102,14 @@ def bin_center(xedges, yedges, kde_cent):
     return cent_bin
 
 
-def get_center(x_data, y_data, mag_data, hist_lst, mode, semi_return,
-    coord_lst):
+def get_center(id_coords, phot_data, hist_lst, semi_return):
     """
     Obtains the center of the putative cluster. Returns the center values
     along with its errors and several arrays related to histograms, mainly for
     plotting purposes.
     """
 
-    coord = coord_lst[0]
+    coord = g.gd_params[0][3]
 
     st_dev_lst = [2., 2.5, 3., 3.5, 4.]
     # Set flags.
@@ -117,6 +117,8 @@ def get_center(x_data, y_data, mag_data, hist_lst, mode, semi_return,
     flag_center_manual = False
 
     # Unpack
+    x_data, y_data = id_coords[1:]
+    mag_data = phot_data[0][0]
     hist, xedges, yedges, bin_width = hist_lst
 
     # This is the radius used in auto and manual mode to restrict the search
@@ -125,10 +127,12 @@ def get_center(x_data, y_data, mag_data, hist_lst, mode, semi_return,
     radius = 0.25 * min(x_span, y_span)
 
     mode_semi = True
-    if mode == 'semi':
+    if g.mode == 'semi':
         # Unpack semi values.
         cent_cl_semi, cl_rad_semi, cent_flag_semi = semi_return[:3]
 
+        # Only apply if flag is on of these values, else skip semi-center
+        # assignment for this cluster.
         if cent_flag_semi in [1, 2]:
             # Search for new center values using the center coordinates
             # and radius given as initial values.
@@ -157,7 +161,7 @@ def get_center(x_data, y_data, mag_data, hist_lst, mode, semi_return,
             # Use 'auto' mode.
             mode_semi = False
 
-    if mode == 'auto' or mode_semi is False:
+    if g.mode == 'auto' or mode_semi is False:
 
         # Obtain approximate values for center coordinates using several
         # Gaussian filters with different standard deviation values, on the
@@ -194,7 +198,7 @@ def get_center(x_data, y_data, mag_data, hist_lst, mode, semi_return,
 
     # If Manual mode is set, display center and ask the user to accept it or
     # input new one.
-    elif mode == 'manual':
+    elif g.mode == 'manual':
 
         # Obtain approximate values for center coordinates using several
         # Gaussian filters with different standard deviation values, on the
