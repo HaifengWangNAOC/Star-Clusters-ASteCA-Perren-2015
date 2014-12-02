@@ -166,16 +166,24 @@ def read_met_file(met_f, age_values, cmd_select, isoch_format):
     return metal_isoch
 
 
-def get_isochs(cmd_select, met_f_filter, age_values, isoch_format):
+def get_isochs(mypath, met_f_filter, age_values, syst, sys_idx):
     '''
     Stores the available isochrones of different metallicities and
     ages, according to the ranges given to these parameters.
     '''
 
-    # Lists that store the colors, magnitudes and masses of the isochrones.
+    # Read line start format and columns indexes for the selected set of
+    # Girardi isochrones.
+    line_start, mass_i, mass_a, mags_idx = gif.i_format(syst)
+
+    iso_select = g.ps_params[0]
+    iso_path = join(mypath + '/isochrones/' + iso_select + '_' + syst[0])
+    age_format = gif.age_f()
+
+    # Lists that store the masses and magnitudes of each isochrone.
     # isoch_list = [metal_1, ..., metal_M]
     # metal_i = [isoch_i1, ..., isoch_iN]
-    # isoch_ij = [colors, magnitudes, mass]
+    # isoch_ij = [mass_i, mass_a, mag1, mag2, ..., magM]
     # isoch_list[i][j] --> i: metallicity index ; j: age index
     isoch_list = []
 
@@ -183,7 +191,9 @@ def get_isochs(cmd_select, met_f_filter, age_values, isoch_format):
     # selected set of isochrones.
     for met_f in met_f_filter:
 
-        metal_isoch = read_met_file(met_f, age_values, cmd_select, isoch_format)
+        met_file = join(iso_path, met_f)
+        metal_isoch = read_met_file(met_file, age_values, line_start, mass_i,
+            mass_a, mags_idx, age_format, sys_idx)
 
         # Store list holding all the isochrones with the same metallicity
         # in the final isochrone list.
@@ -322,7 +332,7 @@ def get_met_age_values(iso_path):
     return param_ranges, param_rs, met_f_filter, met_values, age_values
 
 
-def ip(mypath, iso_path, phot_params):
+def ip(mypath, phot_params):
     '''
     Read isochrones and parameters if best fit function is set to run.
     '''
@@ -336,6 +346,9 @@ def ip(mypath, iso_path, phot_params):
         # system defined.
         # *WE ASUME ALL PHOTOMETRIC SYSTEMS CONTAIN THE SAME NUMBER OF
         # METALLICITY FILES*
+        iso_select = g.ps_params[0]
+        iso_path = join(mypath + '/isochrones/' + iso_select + '_' +
+            phot_params[2][0][0])
         param_ranges, param_rs, met_f_filter, met_values, age_values = \
         get_met_age_values(iso_path)
 
