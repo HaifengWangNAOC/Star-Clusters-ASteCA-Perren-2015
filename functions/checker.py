@@ -242,8 +242,11 @@ def check(mypath, cl_files):
 
         # Read metallicity files.
         try:
+            # Define isochrones path using the first photom system defined.
+            iso_path = join(mypath + '/isochrones/' + iso_select + '_' +
+                phot_params[2][0][0])
             # Store all isochrones in all the metallicity files in isoch_list.
-            ip_list = isochp.ip(mypath, phot_params)
+            ip_list = isochp.ip(mypath, iso_path, phot_params)
         except:
             print traceback.format_exc()
             sys.exit("ERROR: unknown error reading metallicity files.")

@@ -68,16 +68,28 @@ def get_mc_order(phot_params, isochs_interp):
     return isoch_order, ccm_coefs
 
 
-def interp_isoch(isochrone):
+def interp_isoch(isoch_list):
     '''
-    Interpolate extra color, magnitude and masses into the isochrone.
+    Interpolate extra points into the theoretical isochrones passed.
     '''
-    N = 1500
-    t, xp = np.linspace(0, 1, N), np.linspace(0, 1, len(isochrone[0]))
-    # Store isochrone's interpolated values.
-    isoch_inter = np.asarray([np.interp(t, xp, _) for _ in isochrone])
+    N = 2000
+    t = np.linspace(0, 1, N)
 
-    return isoch_inter
+    isochs_interp = [[] for _ in isoch_list]
+    # For each metallicity value.
+    for i, met in enumerate(isoch_list):
+        # For each age value (ie: isochrone)
+        for isoch in met:
+            # Interpolate all magnitudes defined.
+            xp = np.linspace(0, 1, len(isoch[0]))
+            # Store isochrone's interpolated values.
+            isochs_interp[i].append(np.asarray([np.interp(t, xp, _)
+                for _ in isoch]))
+
+    # *** DELETE ****
+    #isoch_inter = np.asarray([np.array(_) for _ in isochrone])
+
+    return isochs_interp
 
 
 def read_met_file(met_f, age_values, cmd_select, isoch_format):
@@ -310,38 +322,53 @@ def get_met_age_values(iso_path):
     return param_ranges, param_rs, met_f_filter, met_values, age_values
 
 
-def ip(ps_params, bf_flag):
+def ip(mypath, iso_path, phot_params):
     '''
     Read isochrones and parameters if best fit function is set to run.
     '''
 
     ip_list = []
     # Only read files of best fit method is set to run.
-    if bf_flag:
+    bf_flag = g.bf_params[0]
+    if bf_flag is True:
 
-        # Unpack.
-        iso_path, cmd_select, iso_select, par_ranges = ps_params
+        # Obtain allowed metallicities and ages. Use the first photometric
+        # system defined.
+        # *WE ASUME ALL PHOTOMETRIC SYSTEMS CONTAIN THE SAME NUMBER OF
+        # METALLICITY FILES*
+        param_ranges, param_rs, met_f_filter, met_values, age_values = \
+        get_met_age_values(iso_path)
 
-        # Read names of all metallicity files stored in isochrones path given.
-        # I.e.: store all metallicity values available.
-        # Also read full paths to metallicity files.
-        met_vals_all, met_files = get_metals(iso_path)
+        print '\n', 'met_vals', met_values
+        print 'age_vals', age_values
 
-        # Read Girardi metallicity files format.
-        isoch_format = i_format(iso_select, cmd_select)
+        print 'Interpolating all isochrones for each photometric system.'
+        # Get isochrones for every photometric system defined.
+        isochs_interp = []
+        for sys_idx, syst in enumerate(phot_params[2]):
 
-        # Read all ages in the first metallicity file: met_files[0]
-        # *WE ASUME ALL METALLICITY FILES HAVE THE SAME NUMBER OF AGE VALUES*
-        # I.e: store all age values available.
-        age_vals_all = get_ages(met_files[0], isoch_format[1])
+        # *WE ASUME ALL ISOCHRONES OF EQUAL METALLICITY HAVE THE SAME NUMBER
+        # OF MASS VALUES ACROSS PHOTOMETRIC SYSTEMS*
 
-        # Get parameters ranges stored in params_input.dat file.
-        param_ranges, param_rs = get_ranges(par_ranges)
+            # Get isochrones and their parameter values.
+            isoch_list = get_isochs(mypath, met_f_filter, age_values, syst,
+                sys_idx)
+            # isoch_list = [met_1, met_2, ..., met_P]
 
-        # Match values in metallicity and age ranges with those available.
-        z_range, a_range = param_ranges[:2]
-        met_f_filter, met_values, age_values = match_ranges(met_vals_all,
-            met_files, age_vals_all, z_range, a_range)
+            # Interpolate extra points into all isochrones.
+            isochs_interp0 = interp_isoch(isoch_list)
+            # For the first photometric system, store the masses that were
+            # read.
+            if sys_idx == 0:
+                isochs_interp.extend(isochs_interp0)
+            # For the rest of the systems, just append its magnitudes for
+            # each isochrone since we assume the masses are equal.
+            else:
+                for m_i, _m in enumerate(isochs_interp0):
+                    for a_i, _a in enumerate(_m):
+                        for mag in _a:
+                            isochs_interp[m_i][a_i] = np.append(
+                                isochs_interp[m_i][a_i], [mag], 0)
 
         # Get isochrones and their parameter values.
         isoch_list = get_isochs(cmd_select, met_f_filter, age_values,
