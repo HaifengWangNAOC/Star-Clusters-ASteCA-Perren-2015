@@ -44,22 +44,28 @@ PD      0      1      2         3     4     5     6
 #
 # * coords: px / deg. Indicates if the observed frame is in pixels or degrees.
 #
-#    coords
-PX      px
+#   id_star   x/ra  y/dec  coords 
+PI        0      1      2      px
 
-# Indicate the CMD to be used by the code to perform the analysis.
+# Photometric system identifiers.
+# The first magnitude defined (in mag1) will be used as the one
+# determining the brightness of stars when plotted, the x axis for
+# the error rejection functions and the minimum brightness limit.
 #
-# * selection: [1, 7]
-# - 1: (B-V) vs V   ; UBVI (Johnson)
-# - 2: (V-I) vs V   ; UBVI (Johnson)
-# - 3: (U-V) vs V   ; UBVI (Johnson)
-# - 4: (C-T1) vs T1 ; Washington
-# - 5: (J-H) vs J   ; 2MASS
-# - 6: (J-H) vs H   ; 2MASS
-# - 7: (H-K) vs K   ; 2MASS
+# IMPORTANT: at least one magnitude and one color (with their errors)
+# must be defined.
 #
-#    selection
-CMD          1
+# - 0: UBVRIJKH		(cf. Maiz-Apellaniz 2006 + Bessell 1990)
+# - 1: JHKs			(2MASS)
+# - 2: CMT1T2BVRI	(Washington)
+#
+# Columns for magnitudes and their errors.
+#      mag1   e_mag1     mag2   e_mag2     mag3   e_mag3 ...
+PM    3,1Ks      6,e     9,0V   10,e
+#
+# Columns for colors and their errors.
+#      col1   e_col1     col2   e_col2     col3   e_col3 ...
+PC   5,0B-V      6,e   7,0U-B     8,e  9,2T1-T2     10,e
 ###############################################################################
 
 
@@ -75,6 +81,11 @@ CMD          1
 #
 #    flag_make_plot  format  DPI
 MP             true     png  150
+
+
+# Select axis of photometric diagram to be plotted.
+#      x      y
+PD  col2   mag2
 
 # Move data file once it is processed?
 #
@@ -114,7 +125,7 @@ CH   auto         20.
 #
 # * points: Number of points that must be found below a minimum delta around
 #   the background value. This condition indicates that the star density
-#   has stabilized. The 'auto' value is 25% of the points in the RDP.
+#   has stabilized.
 #
 #    mode   points
 CR   auto        5
@@ -252,6 +263,11 @@ BF    false      genet     dolphin    knuth         10
 #
 #    iso_select
 PS        PAR10
+
+# Ratio of total to selective absorption.
+#
+#    Rv
+RV  3.1
 
 # Synthetic cluster parameters.
 #
