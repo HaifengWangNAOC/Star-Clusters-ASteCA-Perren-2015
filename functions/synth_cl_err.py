@@ -64,7 +64,7 @@ def synth_clust_err(phot_data, err_pck):
 
         # Unpack params. Use *main* magnitude.
         mag, e_mag, e_col = phot_data[0][0], phot_data[1], phot_data[3]
-        e_max, mag_value = g.er_params[1], err_pck[3]
+        e_max, mag_value = g.er_params[1], err_pck[2]
 
         # Call function to obtain the median points for magnitude
         # and color errors to fit the exponential curve.
