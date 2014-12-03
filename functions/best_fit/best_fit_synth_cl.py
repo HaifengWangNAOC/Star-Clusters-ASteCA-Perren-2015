@@ -10,10 +10,10 @@ from genetic_algorithm import gen_algor as g_a
 from brute_force_algorithm import brute_force as b_f
 from bootstrap_func import bootstrap
 from synth_cluster import synth_clust as s_c
-from error_round import round_sig_fig as rsf
+from ..errors.error_round import round_sig_fig as rsf
 from get_N_IMF import N_IMF as N_imf
 from move_isochrone import move_isoch
-import get_in_params as g
+from .._in import get_in_params as g
 
 
 def synth_cl_plot(ip_list, isoch_fit_params, cmd_sel, err_lst, completeness,

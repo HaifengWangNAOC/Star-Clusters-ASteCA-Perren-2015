@@ -3,7 +3,7 @@
 """
 
 import numpy as np
-import get_in_params as g
+from .._in import get_in_params as g
 
 
 def mpas(cl_reg_rad, runs_fields_probs):

@@ -6,7 +6,7 @@ from functions.exp_function import exp_func
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-import get_in_params as g
+from .._in import get_in_params as g
 
 
 def disp_errors(er_mode, mag, err_plot, acpt_stars, rjct_stars, err_pck):

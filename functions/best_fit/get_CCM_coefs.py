@@ -6,7 +6,7 @@ Created on Thu Oct 16 12:00:00 2014
 """
 
 import numpy as np
-import get_in_params as g
+from .._in import get_in_params as g
 
 
 def ccm_model(mw):

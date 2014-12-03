@@ -4,7 +4,8 @@ Created on Thu Jul 18 17:41:28 2013
 
 @author: gabriel
 """
-import get_in_params as g
+
+from .._in import get_in_params as g
 
 
 def err_a_r_m(e_mag, e_col):

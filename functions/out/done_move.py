@@ -2,7 +2,7 @@
 from os.path import join, exists, isfile
 from os import rmdir, makedirs
 import shutil
-import get_in_params as g
+from .._in import get_in_params as g
 
 
 def done_move(mypath, cl_file, data_file, memb_file):

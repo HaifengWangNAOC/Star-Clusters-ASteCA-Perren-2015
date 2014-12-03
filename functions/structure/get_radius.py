@@ -3,9 +3,9 @@
 """
 
 import numpy as np
-from functions.display_rad import disp_rad as d_r
+from functions.structure.display_rad import disp_rad as d_r
 import matplotlib.pyplot as plt
-import get_in_params as g
+from .._in import get_in_params as g
 
 
 def main_rad_algor(rdp_params, field_dens, bin_width):

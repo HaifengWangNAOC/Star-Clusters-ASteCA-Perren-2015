@@ -8,7 +8,7 @@ Created on Tue Aug  6 10:20:44 2013
 import numpy as np
 import matplotlib.pyplot as plt
 from display_frame import disp_frame as d_f
-import get_in_params as g
+from .._in import get_in_params as g
 
 
 def trim_frame(id_coords, phot_data):

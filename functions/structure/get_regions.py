@@ -8,7 +8,7 @@ Created on Mon Jul 29 10:06:31 2013
 from get_spiral import spiral as gs
 from get_histo_manual import manual_histo as mh
 import numpy as np
-import get_in_params as g
+from .._in import get_in_params as g
 
 
 def spiral_index(spiral, sp_indx, histo, x_c_b, y_c_b, num_bins_area):

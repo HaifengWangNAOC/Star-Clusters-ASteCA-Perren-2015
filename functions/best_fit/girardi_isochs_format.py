@@ -5,7 +5,7 @@ Created on Tue Sep 23 13:03:39 2014
 @author: gabriel
 """
 
-import get_in_params as g
+from .._in import get_in_params as g
 from cmd_phot_systs import phot_mags as pm
 
 

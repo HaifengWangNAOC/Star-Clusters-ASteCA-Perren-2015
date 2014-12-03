@@ -8,7 +8,7 @@ Created on Tue Dic 2 12:00:00 2014
 import re
 from os import path, listdir
 import numpy as np
-import get_in_params as g
+from .._in import get_in_params as g
 import girardi_isochs_format as gif
 
 

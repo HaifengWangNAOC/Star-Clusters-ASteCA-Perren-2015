@@ -1,6 +1,6 @@
 
 import numpy as np
-import get_in_params as g
+from .._in import get_in_params as g
 
 
 def get_2d_histo(id_coords):

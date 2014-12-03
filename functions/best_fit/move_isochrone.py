@@ -6,7 +6,7 @@ Created on Fri Jan 17 16:35:24 2014
 """
 
 import numpy as np
-import get_in_params as g
+from .._in import get_in_params as g
 
 
 def move_isoch(isochrone, e, d, ccm_coefs):

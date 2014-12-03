@@ -2,8 +2,8 @@
 @author: gabriel
 """
 
-import get_in_params as g
 import numpy as np
+from .._in import get_in_params as g
 
 
 def median_sigma(indx, interv, bright_end, mag_value, sigma_prev):

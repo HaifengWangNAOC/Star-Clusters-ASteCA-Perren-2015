@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from scipy import stats
 from scipy.ndimage.filters import gaussian_filter
 from display_cent import disp_cent as d_c
-import get_in_params as g
+from .._in import get_in_params as g
 
 
 def center_approx(hist, xedges, yedges, st_dev_lst):

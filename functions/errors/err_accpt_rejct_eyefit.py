@@ -2,11 +2,11 @@
 @author: gabriel
 """
 
-from functions.err_medians import err_med
-from functions.exp_function import exp_func
-import get_in_params as g
 from scipy.optimize import curve_fit
 import numpy as np
+from functions.errors.err_medians import err_med
+from functions.exp_function import exp_func
+from .._in import get_in_params as g
 
 
 def exp_fit(mag, bright_end, mag_value, err_val):

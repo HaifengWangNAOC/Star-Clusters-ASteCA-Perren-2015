@@ -7,7 +7,7 @@ Created on Thu Nov 28 20:55:57 2013
 
 import numpy as np
 from scipy.interpolate import spline
-import get_in_params as g
+from .._in import get_in_params as g
 
 
 def calc_integ_mag(st_reg):

@@ -15,8 +15,8 @@ from os.path import join
 import warnings
 # Custom functions.
 from functions.exp_function import exp_func
-import error_round as err_r
-import get_in_params as g
+from ..errors import error_round as err_r
+from .._in import get_in_params as g
 
 
 def star_size(mag_data):

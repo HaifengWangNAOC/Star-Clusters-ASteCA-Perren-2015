@@ -2,7 +2,7 @@
 @author: gabriel
 """
 
-import get_in_params as g
+from .._in import get_in_params as g
 from functions.exp_function import exp_func
 from scipy.optimize import curve_fit
 import numpy as np

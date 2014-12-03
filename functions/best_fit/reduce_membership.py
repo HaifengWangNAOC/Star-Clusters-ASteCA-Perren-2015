@@ -5,7 +5,7 @@ Created on Thu Mar 20 2014
 @author: gabriel
 """
 
-import get_in_params as g
+from .._in import get_in_params as g
 
 
 def red_memb(decont_algor_return):

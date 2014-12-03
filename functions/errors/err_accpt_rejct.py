@@ -3,11 +3,11 @@
 """
 
 import matplotlib.pyplot as plt
-from functions.display_errors import disp_errors as d_e
-from functions.err_accpt_rejct_lowexp import err_a_r_lowexp as e_a_r_le
-from functions.err_accpt_rejct_eyefit import err_a_r_eyefit as e_a_r_ef
-from functions.err_accpt_rejct_max import err_a_r_m as e_a_r_m
-import get_in_params as g
+from functions.errors.display_errors import disp_errors as d_e
+from functions.errors.err_accpt_rejct_lowexp import err_a_r_lowexp as e_a_r_le
+from functions.errors.err_accpt_rejct_eyefit import err_a_r_eyefit as e_a_r_ef
+from functions.errors.err_accpt_rejct_max import err_a_r_m as e_a_r_m
+from .._in import get_in_params as g
 
 
 def err_sel_stars(acpt_indx, rjct_indx, id_coords, phot_data):

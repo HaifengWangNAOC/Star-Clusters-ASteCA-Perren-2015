@@ -7,7 +7,7 @@ Created on Fri Oct 25 10:54:00 2013
 
 import numpy as np
 from scipy.optimize import curve_fit
-import get_in_params as g
+from .._in import get_in_params as g
 
 
 def two_params(x, cd, rc, fd):

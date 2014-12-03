@@ -9,10 +9,10 @@ from os.path import join, isfile, isdir
 import sys
 import traceback
 from subprocess import Popen, PIPE
-import get_in_params as g
-from phot_identify import identify_phot_data as ipd
-from get_names_paths import names_paths as n_p
-import get_isoch_params as isochp
+import _in.get_in_params as g
+from best_fit.phot_identify import identify_phot_data as ipd
+from _in.get_names_paths import names_paths as n_p
+from best_fit import get_isoch_params as isochp
 
 
 def check(mypath, cl_files):
