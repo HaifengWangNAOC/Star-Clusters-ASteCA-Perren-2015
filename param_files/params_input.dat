@@ -34,12 +34,6 @@ MO  auto
 
 ######################### Input data parameters ###############################
 
-# Column numbers identifying the needed data as stored in the clusters'
-# photometric data files.
-#
-# id_star   x/ra  y/dec magnitude e_mag color e_col
-PD      0      1      2         3     4     5     6
-
 # Define the system of coordinates used in the data file.
 #
 # * coords: px / deg. Indicates if the observed frame is in pixels or degrees.
