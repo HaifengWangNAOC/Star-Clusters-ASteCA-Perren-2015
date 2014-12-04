@@ -19,8 +19,8 @@ def encode(n_bin, p_delta, p_mins, int_popul):
         # Convert floats to binary strings.
         p_binar = []
         for i, p_del in enumerate(p_delta):
-            p_binar.append(str(bin(int(((sol[i] - p_mins[i]) / p_delta[i]) *
-                (2 ** n_bin))))[2:].zfill(n_bin))
+            p_binar.append(str(bin(int(((sol[i] - p_mins[i]) / p_del) *
+                (2 ** n_bin - 1))))[2:].zfill(n_bin))
 
         # Combine binary strings to generate chromosome.
         chrom = ''.join(p_binar)
@@ -101,7 +101,7 @@ def decode(param_values, n_bin, p_delta, p_mins, mut_chrom):
         # Map integers to the real parameter values.
         for i, p_del in enumerate(p_delta):
             # Map integer to the real parameter value.
-            p_r = p_mins[i] + (b2i[i] * p_del / (2 ** n_bin))
+            p_r = p_mins[i] + (b2i[i] * p_del / (2 ** n_bin - 1))
             # Find the closest value in the parameters list.
             p = min(param_values[i], key=lambda x: abs(x - p_r))
             # Store this last value.
@@ -230,12 +230,13 @@ def num_binary_digits(param_values):
         # to a small value to avoid issues with Elitism operator.
         p_delta.append(max(max(param) - min(param), 1e-10))
 
+    # Assign number of binary digits used to create the chromosomes.
+    #
     p_interv = np.array([len(_) for _ in param_values])
-
-    # Number of binary digits used to create the chromosomes.
     # The max function prevents an error when all parameter ranges are set to
     # a unique value in which case the np.log is a negative float.
-    n_bin = max(int(np.log(max(p_interv)) / np.log(2)) + 1, 1)
+    # We add 10 since it's very cheap and adds a lot of accuracy.
+    n_bin = max(int(np.log(max(p_interv)) / np.log(2)) + 1, 1) + 10
 
     return n_bin, p_delta, p_mins
 
