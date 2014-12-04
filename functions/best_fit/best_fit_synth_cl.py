@@ -22,7 +22,7 @@ def synth_cl_plot(ip_list, isoch_fit_params, cmd_sel, err_lst, completeness,
     For plotting purposes.
     '''
     # Get list of stored isochrones and their parameters.
-    isoch_list, param_values = ip_list[0], ip_list[1]
+    isoch_list, param_values = ip_list[0], ip_list[2]
     # Read best fit values for all parameters.
     m, a, e, d, mass, binar_f = isoch_fit_params[0]
     # Find indexes for metallicity and age. If indexes are not found due
@@ -49,6 +49,8 @@ def params_errors(best_fit_algor, ip_list, N_b, err_lst, memb_prob_avrg_sort,
     '''
 
     if  best_fit_algor == 'brute':
+        print 'CHECK BRUTE FORCE ERRORS'
+        TODO: find larger step in params values and assign as error
         # Assign errors as the steps in each parameter.
         isoch_fit_errors = [p_rs[2] for p_rs in ip_list[2]]
 
@@ -65,7 +67,7 @@ def params_errors(best_fit_algor, ip_list, N_b, err_lst, memb_prob_avrg_sort,
             isoch_fit_errors = [-1.] * len(isoch_fit_params[0])
 
     # If any parameter has a single valued range, assign an error of -1.
-    for i, par_vals in enumerate(ip_list[1]):
+    for i, par_vals in enumerate(ip_list[2]):
         if min(par_vals) == max(par_vals):
             isoch_fit_errors[i] = -1.
 

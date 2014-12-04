@@ -40,37 +40,21 @@ def get_ranges(par_ranges):
     '''
     Calculate parameter ranges to be used by the selected best fit method.
     '''
-
-    # Copy to avoid modifiyng the real list.
-    param_rs = list(par_ranges)
-
-    # UPDATE max values.
-    # Add a small value to each max value to ensure that the range is a bit
-    # larger than the one between the real min and max values. This simplifies
-    # the input of data and ensures that the GA algorithm won't fail when
-    # encoding/decoding the floats into their binary representations.
-    param_ranges = []
-    for param in param_rs:
-        # If min == max then set step value to be a very large number so
-        # the GA will select the number of digits in the encoding binary
-        # correctly.
+    param_values = []
+    for i, param in enumerate(par_ranges):
+        # If min == max store single value in array.
         if param[0] == param[1]:
-            param[2] = 1e6
-        #
-        # Differential to add to the max value.
-        diff = min(param[1] / 100., param[2] / 2.)
-        #
-        # Store min, *UPDATED* max values and steps for all parameters.
-        #
-        # If diff is zero it means either the max or the step values are
-        # zero for this parameter. In such case, use a very small value
-        # instead to allow the ranges to be obtained and the 'Encode'
-        # operator in the GA to work properly.
-        param[1] = (param[1] + diff) if diff > 0. else 0.0001
-        # Store all possible parameter values in array.
-        param_ranges.append(np.arange(*param))
+            param_values.append(np.asarray([param[0]]))
+        else:
+            # Store range values in array.
+            p_rang = np.arange(*param)
+            # Add max value if not present.
+            if p_rang[-1] != param[1]:
+                p_rang = np.append(p_rang, param[1])
+            # Store full range for this parameter.
+            param_values.append(p_rang)
 
-    return param_ranges, param_rs
+    return param_values
 
 
 def get_ages(met_file):
@@ -131,11 +115,14 @@ def get_m_a_vls(iso_path):
     age_vals_all = get_ages(metal_files[0])
 
     # Get parameters ranges stored in params_input.dat file.
-    param_ranges, param_rs = get_ranges(par_ranges)
+    param_vals = get_ranges(par_ranges)
 
     # Match values in metallicity and age ranges with those available.
-    z_range, a_range = param_ranges[:2]
+    z_range, a_range = param_vals[:2]
     met_f_filter, met_values, age_values = match_ranges(met_vals_all,
         metal_files, age_vals_all, z_range, a_range)
 
-    return param_ranges, param_rs, met_f_filter, met_values, age_values
+    # Pack params.
+    param_values = [met_values, age_values] + param_vals[2:]
+
+    return param_values, met_f_filter

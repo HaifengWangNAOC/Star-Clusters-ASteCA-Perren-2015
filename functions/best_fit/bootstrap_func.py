@@ -64,9 +64,11 @@ def bootstrap(err_lst, memb_prob_avrg_sort, completeness, ip_list, bf_params,
 
     # Calculate errors for each parameter.
     isoch_fit_errors = np.std(params_boot, 0)
-    # Errors can not be smaller than the steps in each parameter.
-    param_rs = ip_list[2]
+    # Errors can not be smaller than the larger step in each parameter.
+    param_values = ip_list[2]
     for i, p_er in enumerate(isoch_fit_errors):
+        print 'CHECK BOOTSTRAP FUNC'
+        TODO: find larger step in params values and compare with error below
         isoch_fit_errors[i] = max(param_rs[i][2], p_er)
 
     return isoch_fit_errors

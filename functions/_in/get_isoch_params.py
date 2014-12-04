@@ -109,11 +109,10 @@ def ip(mypath, phot_params):
         iso_select = g.ps_params[0]
         iso_path = join(mypath + '/isochrones/' + iso_select + '_' +
             phot_params[2][0][0])
-        param_ranges, param_rs, met_f_filter, met_values, age_values = \
-        gmav(iso_path)
+        param_values, met_f_filter = gmav(iso_path)
 
-        print '\n', 'met_vals', met_values
-        print 'age_vals', age_values, '\n'
+        print '\n', 'met_vals', param_values[0]
+        print 'age_vals', param_values[1], '\n'
 
         print 'Interpolating all isochrones for each photometric system.\n'
         # Get isochrones for every photometric system defined.
@@ -124,7 +123,8 @@ def ip(mypath, phot_params):
         # OF MASS VALUES ACROSS PHOTOMETRIC SYSTEMS*
 
             # Get isochrones and their parameter values.
-            isoch_list = gi(mypath, met_f_filter, age_values, syst, sys_idx)
+            isoch_list = gi(mypath, met_f_filter, param_values[1], syst,
+                sys_idx)
             # isoch_list = [met_1, met_2, ..., met_P]
 
             # Interpolate extra points into all isochrones.
@@ -156,9 +156,7 @@ def ip(mypath, phot_params):
         # metal_i =[age_i, ..., age_Q]
         # age_i = [mass_i, mass_a, [mag1, ..., magN], [col1, ..., colM]
 
-        # Pack params.
-        param_values = [met_values, age_values] + param_ranges[2:]
-        ip_list = [isochs_order, ccm_coefs, param_values, param_rs]
+        ip_list = [isochs_order, ccm_coefs, param_values]
 
         iso_ver = {'10': '1.0', '11': '1.1', '12': '1.2S'}
         print ("PARSEC v{} theoretical isochrones read,".format(
