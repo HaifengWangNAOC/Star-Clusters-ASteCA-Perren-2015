@@ -7,7 +7,7 @@ Created on Thu Jan  9 15:08:39 2014
 
 from os.path import join
 import numpy as np
-from .._in import get_in_params as g
+import get_in_params as g
 from get_met_ages_values import get_m_a_vls as gmav
 from get_isochs import get_isochs as gi
 from cmd_phot_systs import phot_wavelengths as pw
